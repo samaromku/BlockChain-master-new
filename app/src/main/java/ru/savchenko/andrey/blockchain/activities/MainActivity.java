@@ -5,7 +5,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
@@ -23,12 +22,15 @@ import ru.savchenko.andrey.blockchain.R;
 import ru.savchenko.andrey.blockchain.adapters.USDAdapter;
 import ru.savchenko.andrey.blockchain.base.BaseActivity;
 import ru.savchenko.andrey.blockchain.base.BaseRepository;
+import ru.savchenko.andrey.blockchain.dialogs.BuyOrSellDialog;
 import ru.savchenko.andrey.blockchain.dialogs.DateDialog;
 import ru.savchenko.andrey.blockchain.entities.USD;
 import ru.savchenko.andrey.blockchain.interfaces.OnItemClickListener;
 import ru.savchenko.andrey.blockchain.interfaces.SetDataFromDialog;
 import ru.savchenko.andrey.blockchain.network.RequestManager;
 import ru.savchenko.andrey.blockchain.repositories.USDRepository;
+
+import static ru.savchenko.andrey.blockchain.storage.Const.USD_ID;
 
 public class MainActivity extends BaseActivity implements OnItemClickListener, SetDataFromDialog {
     @BindView(R.id.constraintMain)
@@ -48,14 +50,19 @@ public class MainActivity extends BaseActivity implements OnItemClickListener, S
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         initRv();
+        int usdId = getIntent().getIntExtra(USD_ID, 0);
+
+        if (usdId != 0) {
+            BuyOrSellDialog buyOrSellDialog = new BuyOrSellDialog();
+            buyOrSellDialog.setUsd(new BaseRepository<>(USD.class).getItemById(usdId));
+            buyOrSellDialog.show(getSupportFragmentManager(), "buyOrSell");
+        }
 
         srlRefresher.setOnRefreshListener(() ->
                 RequestManager.getRetrofitService().getExchange()
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(exchange -> {
-//                    String text = "Закупочная " + exchange.getUSD().getBuy() + "\n15 мин назад: " + exchange.getUSD().get5m();
-//                    Log.i(TAG, text);
                             new USDRepository().writeIdDb(exchange.getUSD());
                             adapter.notifyDataSetChanged();
                             srlRefresher.setRefreshing(false);
@@ -94,7 +101,9 @@ public class MainActivity extends BaseActivity implements OnItemClickListener, S
 
     @Override
     public void onClick(int position) {
-        Log.i(TAG, "onClick: " + position);
+        BuyOrSellDialog buyOrSellDialog = new BuyOrSellDialog();
+        buyOrSellDialog.setUsd(new BaseRepository<>(USD.class).getItemById(usds.get(position).getId()));
+        buyOrSellDialog.show(getSupportFragmentManager(), "buyOrSell");
     }
 
     @Override

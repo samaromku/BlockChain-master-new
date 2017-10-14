@@ -1,6 +1,5 @@
 package ru.savchenko.andrey.blockchain.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,18 +7,21 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import ru.savchenko.andrey.blockchain.R;
-import ru.savchenko.andrey.blockchain.base.BaseRepository;
 import ru.savchenko.andrey.blockchain.base.BaseViewHolder;
 import ru.savchenko.andrey.blockchain.entities.USD;
 import ru.savchenko.andrey.blockchain.interfaces.OnItemClickListener;
+import ru.savchenko.andrey.blockchain.storage.Utils;
 
-import static ru.savchenko.andrey.blockchain.activities.MainActivity.TAG;
+import static ru.savchenko.andrey.blockchain.storage.Const.BAD;
+import static ru.savchenko.andrey.blockchain.storage.Const.BEST;
+import static ru.savchenko.andrey.blockchain.storage.Const.GOOD;
+import static ru.savchenko.andrey.blockchain.storage.Const.NORMAL;
+import static ru.savchenko.andrey.blockchain.storage.Const.TERRIBLE;
+import static ru.savchenko.andrey.blockchain.storage.Const.WORST;
 
 /**
  * Created by Andrey on 12.10.2017.
@@ -48,31 +50,26 @@ public class USDAdapter extends ru.savchenko.andrey.blockchain.base.BaseAdapter<
             tvActualPrice.setText(String.valueOf(usd.getLast()));
             tvTime.setText(new SimpleDateFormat("yyyy.MM.dd HH:mm").format(usd.getDate()));
 
-            Log.i(TAG, "bind: " + getMiddleValue());
-            double y = usd.getLast();
-            if(y>=getMiddleValue()+10){
-                llExchange.setBackgroundResource(R.drawable.gradient_five);
-            }if(y>=getMiddleValue()+5){
-                llExchange.setBackgroundResource(R.drawable.gradient_four);
-            }if(y>=getMiddleValue()){
-                llExchange.setBackgroundResource(R.drawable.gradient_three);
-            }if(y<=getMiddleValue()){
-                llExchange.setBackgroundResource(R.drawable.gradient_two);
-            }if(y<=getMiddleValue()-10){
-                llExchange.setBackgroundResource(R.drawable.gradient_one);
+            switch (Utils.getProfit(usd.getLast())){
+                case BEST:
+                    llExchange.setBackgroundResource(R.drawable.gradient_five);
+                    break;
+                case GOOD:
+                    llExchange.setBackgroundResource(R.drawable.gradient_four);
+                    break;
+                case NORMAL:
+                    llExchange.setBackgroundResource(R.drawable.gradient_three);
+                    break;
+                case BAD:
+                    llExchange.setBackgroundResource(R.drawable.gradient_two);
+                    break;
+                case WORST:
+                    llExchange.setBackgroundResource(R.drawable.gradient_one);
+                    break;
+                case TERRIBLE:
+                    llExchange.setBackgroundResource(R.drawable.gradient_one);
+                    break;
             }
         }
-    }
-
-    private double getMiddleValue(){
-        List<Double>doublesUSD = new ArrayList<>();
-        for(USD usd: new BaseRepository<>(USD.class).getAll()){
-            doublesUSD.add(usd.getLast());
-        }
-        double allValues = 0;
-        for (int i = 0; i < doublesUSD.size(); i++) {
-            allValues = allValues + doublesUSD.get(i);
-        }
-        return allValues/doublesUSD.size();
     }
 }

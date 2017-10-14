@@ -22,8 +22,12 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import ru.savchenko.andrey.blockchain.R;
 import ru.savchenko.andrey.blockchain.activities.MainActivity;
+import ru.savchenko.andrey.blockchain.entities.USD;
 import ru.savchenko.andrey.blockchain.network.RequestManager;
 import ru.savchenko.andrey.blockchain.repositories.USDRepository;
+import ru.savchenko.andrey.blockchain.storage.Utils;
+
+import static ru.savchenko.andrey.blockchain.storage.Const.USD_ID;
 
 
 /**
@@ -51,25 +55,28 @@ public class UpdateExchangeService extends IntentService{
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( exchange -> {
-                    String text = "Закупочная " + exchange.getUSD().getBuy() + "$ 15 мин назад: " + exchange.getUSD().get5m();
-                    Log.i(TAG, text);
-                    sendNotify(text);
-                    new USDRepository().writeIdDb(exchange.getUSD());
+                    int usdId = new USDRepository().writeIdDbReturnInteger(exchange.getUSD());
+                    sendNotify(exchange.getUSD(),usdId);
                 }, Throwable::printStackTrace);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    private void sendNotify(String message){
-        Intent intent = new Intent(this, MainActivity.class);
+    private void sendNotify(USD usd, int usdId){
+        Intent intent = new Intent(this, MainActivity.class).putExtra(USD_ID, usdId);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+
+        String text = "Закупочная " + usd.getBuy() + "$ 15 мин назад: " + usd.get5m();
+
+        Log.i(TAG, text);
+        String title = Utils.getBestAndWorstString(usd.getLast());
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 //.setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND)
                 .setPriority(Notification.PRIORITY_MAX)
-                .setSmallIcon(R.drawable.ic_cake)
-                .setContentTitle("BlockChain")
-                .setContentText(message)
+                .setSmallIcon(R.drawable.ic_monetization)
+                .setContentTitle(title)
+                .setContentText(text)
                 .setAutoCancel(true)
                 .setVibrate(new long[] { 1000, 1000})
                 .setLights(Color.WHITE, 3000, 3000)

@@ -26,6 +26,15 @@ public class USDRepository {
         baseRepository.addItem(usd);
     }
 
+    public int writeIdDbReturnInteger(USD usd){
+        BaseRepository baseRepository = new BaseRepository<>(USD.class);
+        int maxId = baseRepository.getMaxIdPlusOne();
+        usd.setId(maxId);
+        usd.setDate(new Date());
+        baseRepository.addItem(usd);
+        return maxId;
+    }
+
     public void addChangeListener(BaseAdapter adapter, RecyclerView rvExchange){
         realmInstance().addChangeListener(realm -> {
             adapter.notifyDataSetChanged();
@@ -40,5 +49,21 @@ public class USDRepository {
                 .findAll();
         realmInstance().close();
         return usds;
+    }
+
+    public Integer getMaxLast(){
+        int maxLast = realmInstance().where(USD.class)
+                .max("mLast")
+                .intValue();
+        realmInstance().close();
+        return maxLast;
+    }
+
+    public Integer getMintLast(){
+        int minLast = realmInstance().where(USD.class)
+                .min("mLast")
+                .intValue();
+        realmInstance().close();
+        return minLast;
     }
 }

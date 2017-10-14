@@ -62,5 +62,6 @@ dependencies {
     compile 'com.arello-mobile:moxy-app-compat:1.5.3'
     annotationProcessor 'com.arello-mobile:moxy-compiler:1.5.3'
 
-    //gradient
+    //diagramm
+    compile 'com.github.lecho:hellocharts-android:v1.5.8'
 }
